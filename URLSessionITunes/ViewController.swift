@@ -8,47 +8,71 @@
 
 import UIKit
 import Alamofire
+import FirebaseCore
+import FirebaseDatabase
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet var table: UITableView? = UITableView()
     var albumTitles = [String]()
     var albumPrices = [String]()
+    var teams = [String]()
     var countrySongs = [String]()
+    var ref : DatabaseReference?
     
-    var schoolNames = [String]()
-    var schoolMascot = [String]()
-    
-    //todo: figue out how to access specific json stuff
     override func viewDidLoad() {
         super.viewDidLoad()
+        FirebaseApp.configure()
+        ref = Database.database().reference(withPath: "teams")
         table?.dataSource = self
         table?.delegate = self
         // Do any additional setup after loading the view, typically from a nib.
         downloadData() //downloads the top ten albums info using the traditional method
         alamoFireExample() //downloads the top 50 country song info using the Alamofire Library
+        
+        for index in 0...319{
+            let strPath = String(index)
+            ref?.child(strPath).observeSingleEvent(of: .value, with: { (snapshot) in
+                let value = snapshot.value as? NSDictionary
+                let region = value?["region"] as? String
+                let name = value?["name"] as? String
+                print(String(index) + region! + " " + name!)
+                self.teams.append(region! + " " + name!)
+                self.sortArray()
+            })
+        }
+        
+        
     }
 
+    func sortArray(){
+        teams = teams.sorted { (s1: String, s2: String) -> Bool in
+            return s1 < s2
+        }
+        self.table?.reloadData()
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
+    //edit this to change table content
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return countrySongs.count
+        return teams.count
     }
     
+    //edit this to change table contnet
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell : UITableViewCell = UITableViewCell()
-        cell.textLabel?.text = countrySongs[indexPath.row]
+        cell.textLabel?.text = teams[indexPath.row]
         return cell
     }
     
     //method to download data using the URL libraries that apple already has (sucky :[)
     func downloadData(){
         //put url here and set up request settings and tsk
-        let requestURL: NSURL = NSURL(string: "https://itunes.apple.com/us/rss/topalbums/limit=10/json")!
-        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(url: requestURL as URL)
+        let requestURL: URL = URL(string: "https://itunes.apple.com/us/rss/topalbums/limit=10/json")!
+        let urlRequest: URLRequest = URLRequest(url: requestURL as URL)
         let session = URLSession.shared
         let task = session.dataTask(with: urlRequest as URLRequest) {
             (data, response, error) -> Void in
@@ -91,7 +115,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     //method to download data using the alamofire library (hopefully making it a fuckton easier)
     func alamoFireExample(){
+
         Alamofire.request("https://itunes.apple.com/us/rss/topsongs/limit=50/genre=6/json").responseJSON { (response)->Void in
+            //go crazy with alamofire
+
+            
             if let json = response.result.value as? [String: AnyObject]{
                 if let feed = json["feed"] as? [String: Any]{
                     if let entry = feed["entry"] as? [Any]{
