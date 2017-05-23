@@ -700,6 +700,7 @@
 				FD1FD20E1ED36258004A306B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		FD1FD20F1ED36258004A306B /* Build configuration list for PBXNativeTarget "URLSessionITunesTests" */ = {
 			isa = XCConfigurationList;
@@ -708,6 +709,7 @@
 				FD1FD2111ED36258004A306B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		FD1FD2121ED36258004A306B /* Build configuration list for PBXNativeTarget "URLSessionITunesUITests" */ = {
 			isa = XCConfigurationList;
@@ -716,6 +718,7 @@
 				FD1FD2141ED36258004A306B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

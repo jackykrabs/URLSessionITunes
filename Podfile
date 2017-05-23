@@ -6,6 +6,8 @@ target 'URLSessionITunes' do
   use_frameworks!
 
   # Pods for URLSessionITunes
+  
+    pod ‘Alamofire’, ‘~> 4.4'
 
   target 'URLSessionITunesTests' do
     inherit! :search_paths
