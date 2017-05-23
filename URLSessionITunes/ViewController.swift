@@ -26,31 +26,44 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         ref = Database.database().reference(withPath: "teams")
         table?.dataSource = self
         table?.delegate = self
+        //addCollege(abbrev: "MCSU", name: "Verles", region: "Mason Chander State")
         // Do any additional setup after loading the view, typically from a nib.
         downloadData() //downloads the top ten albums info using the traditional method
         alamoFireExample() //downloads the top 50 country song info using the Alamofire Library
+        firebaseSDKExample() // downloads all 320 NCAA Colleges and sorts them into alphabetical order
         
-        for index in 0...319{
+        ref?.child("0").child("name").setValue("Blue Devils")
+
+        //table?.reloadData()
+    }
+
+
+    func firebaseSDKExample(){
+        for index in 0...320{
             let strPath = String(index)
             ref?.child(strPath).observeSingleEvent(of: .value, with: { (snapshot) in
                 let value = snapshot.value as? NSDictionary
                 let region = value?["region"] as? String
                 let name = value?["name"] as? String
-                print(String(index) + region! + " " + name!)
                 self.teams.append(region! + " " + name!)
                 self.sortArray()
             })
         }
-        
-        
     }
-
+    
+    //method to add college
+    func addCollege(abbrev: String, name: String, region: String){
+        ref?.child("320").child("name").setValue(name)
+        ref?.child("320").child("region").setValue(region)
+        ref?.child("320").child("abbrev").setValue(abbrev)
+    }
     func sortArray(){
         teams = teams.sorted { (s1: String, s2: String) -> Bool in
             return s1 < s2
         }
         self.table?.reloadData()
     }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -68,7 +81,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
-    //method to download data using the URL libraries that apple already has (sucky :[)
+    //method to download data using the URL libraries that apple already has
     func downloadData(){
         //put url here and set up request settings and tsk
         let requestURL: URL = URL(string: "https://itunes.apple.com/us/rss/topalbums/limit=10/json")!
@@ -113,7 +126,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         task.resume()
     }
     
-    //method to download data using the alamofire library (hopefully making it a fuckton easier)
+    //method to download data using the alamofire library
     func alamoFireExample(){
 
         Alamofire.request("https://itunes.apple.com/us/rss/topsongs/limit=50/genre=6/json").responseJSON { (response)->Void in
