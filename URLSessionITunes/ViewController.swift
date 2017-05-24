@@ -121,7 +121,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     }
  
-    //method to add college (not using the firebase SDK because we're baller) (POST Method)
+    //method to add college (POST Method)
     func addCollege(abbrev: String, cid: Int, city: String, did: Int, name: String, pop: Int, region: String, state: String, rank: Int){
         
         //create the json object to place into the database
