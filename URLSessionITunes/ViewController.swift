@@ -26,11 +26,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         ref = Database.database().reference(withPath: "teams")
         table?.dataSource = self
         table?.delegate = self
-        addCollege(abbrev: "LU", cid: 3, city: "St. Charles", did: 3, name: "Lions", pop: 66, region: "Lindenwood", state: "MO", rank: 3)
-        downloadData() //downloads the colleges like with firebaseSDK
+        //addCollege(abbrev: "DUKE", cid: 1, city: "Durham", did: 1, name: "Blue Devils", pop: 66, region: "Duke", state: "NC", rank: 1)
+        //deleteCollege(identifier: "1")
+        updateCollege(identifier: "0")
+        downloadData()
     }
 
 
+    //fix before using
     func firebaseSDKExample(){
         for index in 0...320{
             let strPath = String(index)
@@ -44,7 +47,81 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
     
-    //method to add college (not using the firebase SDK because we're baller)
+    //method to update information about one of the colleges in the database (unlike editCollege, it doesn't delete the elements it's not touching)
+    //given the identifier (jumble of characters or string number) (PATCH Method)
+    func updateCollege(identifier: String){
+        let requestURL: URL = URL(string: "https://my-awesome-project-8b957.firebaseio.com/teams/" + identifier + ".json")!
+        var urlRequest: URLRequest = URLRequest(url: requestURL as URL)
+        urlRequest.httpMethod = "PATCH"
+        
+        let testObj = [
+            "region" : "Duke"
+        ] as [String: Any]
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: testObj)
+        
+        urlRequest.httpBody = jsonData
+        
+        let task = URLSession.shared.dataTask(with: urlRequest as URLRequest) {
+            (data, response, error) -> Void in
+            
+            self.table?.reloadData()
+        }
+        task.resume()
+    }
+    
+    //method to delete a college in the database, given the identifier (usually either a number in a string or a random jumble of characters) (DELETE Method)
+    func deleteCollege(identifier: String){
+        let requestURL: URL = URL(string: "https://my-awesome-project-8b957.firebaseio.com/teams/" + identifier + ".json")!
+        var urlRequest: URLRequest = URLRequest(url: requestURL as URL)
+        urlRequest.httpMethod = "DELETE"
+        
+        let task = URLSession.shared.dataTask(with: urlRequest as URLRequest) {
+            (data, response, error) -> Void in
+            
+            self.table?.reloadData()
+        }
+        task.resume()
+    }
+    
+    //method to edit a college in the database, given the identifier (usually either a number in a string or a random jumble of characters) (PUT Method)
+    //unlike the updateCollege() method, this use of the PUT method deletes all of the elements that aren't touched
+    func editCollege(identifier: String){
+        let requestURL: URL = URL(string: "https://my-awesome-project-8b957.firebaseio.com/teams/" + identifier + ".json")!
+        var urlRequest: URLRequest = URLRequest(url: requestURL as URL)
+        urlRequest.httpMethod = "PUT"
+        
+        let validTeam = [
+            "abbrev" : "oi",
+            "cid" : 1,
+            "city" : "San Antonio",
+            "did" : 54,
+            "latitude" : 12.3,
+            "longitude" : 38.4,
+            "name" : "Spurs",
+            "pop" : 987,
+            "region" : "San Antonio",
+            "state" : "TX",
+            "tid" : 32
+            ] as [String : Any]
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: validTeam)
+        
+        //move the data into the body of the http request (prepare to send off to the webserver aka Firebase project)
+        urlRequest.httpBody = jsonData
+        
+        
+        //create the task to send the data and execute it
+        let task = URLSession.shared.dataTask(with: urlRequest as URLRequest) {
+            (data, response, error) -> Void in
+            
+            self.table?.reloadData()
+        }
+        task.resume()
+
+    }
+ 
+    //method to add college (not using the firebase SDK because we're baller) (POST Method)
     func addCollege(abbrev: String, cid: Int, city: String, did: Int, name: String, pop: Int, region: String, state: String, rank: Int){
         
         //create the json object to place into the database
@@ -66,16 +143,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let jsonData = try? JSONSerialization.data(withJSONObject: validTeam)
         
         //set up the URL request and set the request to 'POST' (let the program know we're writing data)
-        let requestURL: URL = URL(string: "https://my-awesome-project-8b957.firebaseio.com/teams.json")!
+        let requestURL: URL = URL(string: "https://my-awesome-project-8b957.firebaseio.com/teams/0.json")!
         var urlRequest: URLRequest = URLRequest(url: requestURL as URL)
         urlRequest.httpMethod = "POST"
         
         //move the data into the body of the http request (prepare to send off to the webserver aka Firebase project)
         urlRequest.httpBody = jsonData
         
+        
         //create the task to send the data and execute it
         let task = URLSession.shared.dataTask(with: urlRequest as URLRequest) {
             (data, response, error) -> Void in
+
+            self.table?.reloadData()
         }
         task.resume()
     }
@@ -105,7 +185,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
-    //method to download data using the URL libraries that apple already has
+    //method to download data using the URL libraries that apple already has (GET Method)
     func downloadData(){
         
         //put url here, set up request settings, and set the HTTP method to 'GET' (let the program know we're reading data)
@@ -123,10 +203,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //if it's all good in the hood, start parsing the json
             if(statusCode == 200){
                 do{
-                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! Dictionary <String, AnyObject>
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [AnyObject]
                    
                     //iterate through the dictionary of json objects, and add each one's school name and mascot to the (same) cell in the teams array
-                    for (_, value) in json {
+                    for value in json {
                         if let team = value as? [String: AnyObject]{
                             if let name = team["region"] as? String {
                                 self.teams.append(name)
@@ -137,7 +217,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                         }
                     }
                     //if this isn't called, the teams are in a random order
-                    self.sortArray()
+                   // self.sortArray()
                     
                     //update the table with the new data
                     self.table?.reloadData()
