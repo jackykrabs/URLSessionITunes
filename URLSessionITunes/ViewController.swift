@@ -28,7 +28,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         table?.dataSource = self
         table?.delegate = self
         login(email: "jackykrabs@gmail.com", password: "anotherPassword")
-        //sendPasswordReset(email: "jackykrabs@gmail.com")
         getInfo()
         //updateInfo()
         downloadData()
@@ -88,6 +87,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 print((user?.email ?? "nil@youfuckedup.com") + " is logged in!")
                 if(!(user?.isEmailVerified)!){
                     print((user?.email)! + " needs to get their shit together and verify their email!")
+                }
+                    /*
                     user?.sendEmailVerification(completion: { (error) in
                         if(error == nil){
                             print("Verification Email Sent!")
@@ -96,7 +97,26 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                             print("error: " + (error?.localizedDescription)!)
                         }
                     })
-                }
+ */
+                    let url = URL(string: "https://my-awesome-project-8b957.firebaseio.com/usersOnline.json")
+                    var urlRequest = URLRequest(url: url!)
+                    urlRequest.httpMethod = "POST"
+                    let jsonObject = [
+                        "email" : email
+                    ] as [String: Any]
+                    
+                    let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject)
+                    
+                    urlRequest.httpBody = jsonData
+                    
+                    let task = URLSession.shared.dataTask(with: urlRequest as URLRequest) {
+                        (data, response, error) -> Void in
+                        
+                        self.table?.reloadData()
+                    }
+                    task.resume()
+                    
+                
             }else {
                 print("Error: " + (error?.localizedDescription)!)
             }
